@@ -2,7 +2,8 @@ import * as React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./components/App";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
-
+import { LiaArrowUpSolid, LiaArrowDownSolid } from "react-icons/lia";
+import { TbArrowsDown, TbArrowsUp } from "react-icons/tb";
 /* global document, Office, module, require */
 
 const title = "Contoso Task Pane Add-in";
@@ -25,19 +26,112 @@ if (module.hot) {
     root.render(NextApp);
   });
 }
+// Functionality
 
 /* React Components */
 
 // SheetCard Component
-function SheetCard({ sheetNames }) {
+function SheetCard({ sheetNames, updateSheetOrder }) {
+  const moveSheetUp = (index) => {
+    if (index > 0) {
+      const updatedOrder = [...sheetNames];
+      const temp = updatedOrder[index - 1];
+      updatedOrder[index - 1] = updatedOrder[index];
+      updatedOrder[index] = temp;
+      updateSheetOrder(updatedOrder);
+    }
+  };
+
+  const moveSheetDown = (index) => {
+    if (index < sheetNames.length - 1) {
+      const updatedOrder = [...sheetNames];
+      const temp = updatedOrder[index + 1];
+      updatedOrder[index + 1] = updatedOrder[index];
+      updatedOrder[index] = temp;
+      updateSheetOrder(updatedOrder);
+    }
+  };
+
+  const moveAllSheetsUp = (index) => {
+    const updatedOrder = [...sheetNames];
+    const sheet = updatedOrder.splice(index, 1);
+    updatedOrder.unshift(sheet[0]);
+    updateSheetOrder(updatedOrder);
+  };
+
+  const moveAllSheetsDown = (index) => {
+    const updatedOrder = [...sheetNames];
+    const sheet = updatedOrder.splice(index, 1);
+    updatedOrder.push(sheet[0]);
+    updateSheetOrder(updatedOrder);
+  };
+
   return (
-    <div>
-      <h2>Sheet Names</h2>
-      <ul>
-        {sheetNames.map((name, index) => (
-          <li key={index}>{name}</li>
-        ))}
-      </ul>
+    <div style={{ backgroundColor: "white", height: "500px", padding: "10px" }}>
+      <div>
+        <h1 style={{ color: "#124076", marginLeft: "40px" }}>Navigator App</h1>
+      </div>
+      <div>
+        <h2 style={{ color: "#4CCD99", marginLeft: "40px" }}>Total Sheets: {sheetNames.length}</h2>
+        <ul type="none">
+          {sheetNames.map((sheetName, index) => (
+            <li key={index}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                {/* Move Up All Button */}
+
+                {/* Move Up Button */}
+                <button
+                  style={{ marginRight: "5px", cursor: "pointer" }}
+                  onClick={() => moveSheetUp(index)}
+                  disabled={index === 0} // Disable if it's the first sheet
+                >
+                  <LiaArrowUpSolid />
+                </button>
+                {/* Move Down Button */}
+                <button
+                  style={{ marginRight: "5px", cursor: "pointer" }}
+                  onClick={() => moveSheetDown(index)}
+                  disabled={index === sheetNames.length - 1} // Disable if it's the last sheet
+                >
+                  <LiaArrowDownSolid />
+                </button>
+                <button
+                  style={{ marginRight: "5px", cursor: "pointer" }}
+                  onClick={() => moveAllSheetsUp(index)}
+                  disabled={index === 0} // Disable if it's the first sheet
+                >
+                  <TbArrowsUp />
+                </button>
+                {/* Move Down All Button */}
+                <button
+                  style={{ marginRight: "5px", cursor: "pointer" }}
+                  onClick={() => moveAllSheetsDown(index)}
+                  disabled={index === 0}  // Disable if it's the last sheet
+                >
+                  <TbArrowsDown />
+                </button>
+                <div>{sheetName}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div style={{ marginLeft: "40px" }}>
+          <button
+            style={{ padding: "10px", fontWeight: "bold", cursor: "pointer" }}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = "#FFF";
+              e.target.style.color = "#40679E";
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = "#40679E";
+              e.target.style.color = "#FFF";
+            }}
+          >
+            Re-Order Sheet
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -68,15 +162,19 @@ async function sheetLoading() {
       renderSheetCard(sheetNames);
     });
   } catch (error) {
-    console.error('Error loading sheet names:', error);
+    console.error("Error loading sheet names:", error);
   }
 }
-
+const updateSheetOrder = (updatedOrder) => {
+  tryCatch(() => {
+    renderSheetCard(updatedOrder);
+  });
+};
 // Render the SheetCard component
 function renderSheetCard(sheetNames) {
   root.render(
     <FluentProvider theme={webLightTheme}>
-      <SheetCard sheetNames={sheetNames} />
+      <SheetCard sheetNames={sheetNames} updateSheetOrder={updateSheetOrder} />
     </FluentProvider>
   );
 }

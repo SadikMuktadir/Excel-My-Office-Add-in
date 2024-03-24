@@ -32,14 +32,15 @@
     "es6-promise": "^4.2.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.0.1",
     "regenerator-runtime": "^0.13.7"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",
     "@babel/plugin-transform-class-properties": "^7.3.0",
     "@babel/preset-env": "^7.6.3",
-    "@babel/preset-typescript": "^7.13.0",
     "@babel/preset-react": "^7.6.3",
+    "@babel/preset-typescript": "^7.13.0",
     "@types/es6-collections": "^0.5.29",
     "@types/office-js": "^1.0.256",
     "@types/office-runtime": "^1.0.23",
