@@ -5,6 +5,7 @@ import HeroList from "./HeroList";
 import TextInsertion from "./TextInsertion";
 import { makeStyles } from "@fluentui/react-components";
 import { Ribbon24Regular, LockOpen24Regular, DesignIdeas24Regular } from "@fluentui/react-icons";
+import SheetCard from "./SheetCard";
 
 const useStyles = makeStyles({
   root: {
@@ -33,9 +34,10 @@ const App = (props) => {
 
   return (
     <div className={styles.root}>
-      <Header logo="assets/logo-filled.png" title={props.title} message="Welcome" />
+      {/* <Header logo="assets/logo-filled.png" title={props.title} message="Welcome" />
       <HeroList message="Discover what this add-in can do for you today!" items={listItems} />
-      <TextInsertion />
+      <TextInsertion /> */}
+      <SheetCard></SheetCard>
     </div>
   );
 };
