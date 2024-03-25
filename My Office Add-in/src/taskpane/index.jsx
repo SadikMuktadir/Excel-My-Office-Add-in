@@ -117,7 +117,7 @@ function SheetCard({ sheetNames, updateSheetOrder, onReorderButtonClick }) {
 
         <div style={{ marginLeft: "40px" }}>
           <button
-            onClick={onReorderButtonClick}
+           onClick={() => onReorderButtonClick(sheetNames)}
             style={{ padding: "10px", fontWeight: "bold", cursor: "pointer" }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = "#FFF";
@@ -170,8 +170,37 @@ async function sheetLoading() {
   }
 }
 
-const onReorderButtonClick = (sheetNames) => {
-  console.log("sheetNames");
+const onReorderButtonClick = async (sheetNames) => {
+  try {
+    await Excel.run(async (context) => {
+      const workbook = context.workbook;
+      const worksheets = workbook.worksheets;
+
+      // Get the current order of worksheets in the workbook
+      const currentSheetNames = sheetNames.slice(); // Create a copy of sheetNames array
+      const currentWorksheets = worksheets.load("name");
+      await context.sync();
+
+      // Map the current order of sheet names to their corresponding worksheet objects
+      const worksheetMap = {};
+      for (let i = 0; i < currentWorksheets.items.length; i++) {
+        const worksheet = currentWorksheets.items[i];
+        worksheetMap[worksheet.name] = worksheet;
+      }
+
+      // Reorder worksheets based on the current UI order
+      for (let i = 0; i < currentSheetNames.length; i++) {
+        const sheetName = currentSheetNames[i];
+        const worksheet = worksheetMap[sheetName];
+        worksheet.position = i; // Set the position of the worksheet
+      }
+
+      // Save the changes
+      await context.sync();
+    });
+  } catch (error) {
+    console.error("Error reordering sheets:", error);
+  }
 };
 
 const updateSheetOrder = (updatedOrder) => {
