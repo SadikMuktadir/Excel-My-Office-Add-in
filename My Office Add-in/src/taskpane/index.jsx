@@ -4,6 +4,7 @@ import App from "./components/App";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import { LiaArrowUpSolid, LiaArrowDownSolid } from "react-icons/lia";
 import { TbArrowsDown, TbArrowsUp } from "react-icons/tb";
+
 /* global document, Office, module, require */
 
 const title = "Contoso Task Pane Add-in";
@@ -31,7 +32,7 @@ if (module.hot) {
 /* React Components */
 
 // SheetCard Component
-function SheetCard({ sheetNames, updateSheetOrder }) {
+function SheetCard({ sheetNames, updateSheetOrder, onReorderButtonClick }) {
   const moveSheetUp = (index) => {
     if (index > 0) {
       const updatedOrder = [...sheetNames];
@@ -77,8 +78,6 @@ function SheetCard({ sheetNames, updateSheetOrder }) {
           {sheetNames.map((sheetName, index) => (
             <li key={index}>
               <div style={{ display: "flex", alignItems: "center" }}>
-                {/* Move Up All Button */}
-
                 {/* Move Up Button */}
                 <button
                   style={{ marginRight: "5px", cursor: "pointer" }}
@@ -98,7 +97,7 @@ function SheetCard({ sheetNames, updateSheetOrder }) {
                 <button
                   style={{ marginRight: "5px", cursor: "pointer" }}
                   onClick={() => moveAllSheetsUp(index)}
-                  disabled={index === 0} // Disable if it's the first sheet
+                  disabled={index === 0}
                 >
                   <TbArrowsUp />
                 </button>
@@ -106,7 +105,7 @@ function SheetCard({ sheetNames, updateSheetOrder }) {
                 <button
                   style={{ marginRight: "5px", cursor: "pointer" }}
                   onClick={() => moveAllSheetsDown(index)}
-                  disabled={index === 0}  // Disable if it's the last sheet
+                  disabled={index === sheetNames.length - 1} // Disable if it's the last sheet
                 >
                   <TbArrowsDown />
                 </button>
@@ -118,6 +117,7 @@ function SheetCard({ sheetNames, updateSheetOrder }) {
 
         <div style={{ marginLeft: "40px" }}>
           <button
+            onClick={onReorderButtonClick}
             style={{ padding: "10px", fontWeight: "bold", cursor: "pointer" }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = "#FFF";
@@ -139,7 +139,11 @@ function SheetCard({ sheetNames, updateSheetOrder }) {
 /* Office Add-in Code */
 
 // Handle click event for refresh button
-document.getElementById("refresh-button").onclick = () => tryCatch(sheetLoading);
+// document.getElementById("refresh-button").onclick = () => tryCatch(sheetLoading);
+
+Office.onReady(() => {
+  tryCatch(sheetLoading);
+});
 
 // Load sheet names from Excel and update UI
 async function sheetLoading() {
@@ -165,16 +169,25 @@ async function sheetLoading() {
     console.error("Error loading sheet names:", error);
   }
 }
+
+const onReorderButtonClick = (sheetNames) => {
+  console.log("sheetNames");
+};
+
 const updateSheetOrder = (updatedOrder) => {
   tryCatch(() => {
     renderSheetCard(updatedOrder);
   });
 };
-// Render the SheetCard component
+
 function renderSheetCard(sheetNames) {
   root.render(
     <FluentProvider theme={webLightTheme}>
-      <SheetCard sheetNames={sheetNames} updateSheetOrder={updateSheetOrder} />
+      <SheetCard
+        sheetNames={sheetNames}
+        updateSheetOrder={updateSheetOrder}
+        onReorderButtonClick={onReorderButtonClick}
+      />
     </FluentProvider>
   );
 }
