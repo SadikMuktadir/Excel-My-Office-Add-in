@@ -4,7 +4,9 @@ import App from "./components/App";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import { LiaArrowUpSolid, LiaArrowDownSolid } from "react-icons/lia";
 import { TbArrowsDown, TbArrowsUp } from "react-icons/tb";
-
+import { Button } from "@fluentui/react-components";
+import { ButtonProps } from "@fluentui/react-components";
+// import type { ButtonProps } from "@fluentui/react-components";
 /* global document, Office, module, require */
 
 const title = "Contoso Task Pane Add-in";
@@ -79,36 +81,48 @@ function SheetCard({ sheetNames, updateSheetOrder, onReorderButtonClick }) {
             <li key={index}>
               <div style={{ display: "flex", alignItems: "center" }}>
                 {/* Move Up Button */}
-                <button
-                  style={{ marginRight: "5px", cursor: "pointer" }}
+                <Button
+                  style={{ marginRight: "5px" }}
+                  shape="square"
+                  Appearance="primary"
+                  size="small"
                   onClick={() => moveSheetUp(index)}
                   disabled={index === 0} // Disable if it's the first sheet
                 >
                   <LiaArrowUpSolid />
-                </button>
+                </Button>
                 {/* Move Down Button */}
-                <button
-                  style={{ marginRight: "5px", cursor: "pointer" }}
+                <Button
+                  style={{ marginRight: "5px" }}
+                  shape="square"
+                  Appearance="primary"
+                  size="small"
                   onClick={() => moveSheetDown(index)}
                   disabled={index === sheetNames.length - 1} // Disable if it's the last sheet
                 >
                   <LiaArrowDownSolid />
-                </button>
-                <button
-                  style={{ marginRight: "5px", cursor: "pointer" }}
+                </Button>
+                <Button
+                  style={{ marginRight: "5px" }}
+                  shape="square"
+                  Appearance="primary"
+                  size="small"
                   onClick={() => moveAllSheetsUp(index)}
                   disabled={index === 0}
                 >
                   <TbArrowsUp />
-                </button>
+                </Button>
                 {/* Move Down All Button */}
-                <button
-                  style={{ marginRight: "5px", cursor: "pointer" }}
+                <Button
+                  style={{ marginRight: "5px" }}
+                  shape="square"
+                  Appearance="primary"
+                  size="small"
                   onClick={() => moveAllSheetsDown(index)}
                   disabled={index === sheetNames.length - 1} // Disable if it's the last sheet
                 >
                   <TbArrowsDown />
-                </button>
+                </Button>
                 <div>{sheetName}</div>
               </div>
             </li>
@@ -116,9 +130,9 @@ function SheetCard({ sheetNames, updateSheetOrder, onReorderButtonClick }) {
         </ul>
 
         <div style={{ marginLeft: "40px" }}>
-          <button
-           onClick={() => onReorderButtonClick(sheetNames)}
-            style={{ padding: "10px", fontWeight: "bold", cursor: "pointer" }}
+          <Button
+            onClick={() => onReorderButtonClick(sheetNames)}
+            // style={{ padding: "10px", fontWeight: "bold", cursor: "pointer" }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = "#FFF";
               e.target.style.color = "#40679E";
@@ -129,7 +143,7 @@ function SheetCard({ sheetNames, updateSheetOrder, onReorderButtonClick }) {
             }}
           >
             Re-Order Sheet
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -150,7 +164,7 @@ async function sheetLoading() {
   try {
     await Excel.run(async (context) => {
       const allSheet = context.workbook.worksheets;
-      allSheet.load("name");
+      allSheet.load(["name", "visibility"]); // Load both name and visibility properties
       await context.sync();
 
       let sheetNames = [];
@@ -158,7 +172,11 @@ async function sheetLoading() {
       for (let i = 0; i < allSheet.items.length; i++) {
         let current_sheet = allSheet.items[i];
         const sheetName = current_sheet.name;
-        sheetNames.push(sheetName);
+        const isHidden = current_sheet.visibility === "Hidden"; // Check if sheet is hidden
+        if (!isHidden) {
+          // Only add visible sheets to the array
+          sheetNames.push(sheetName);
+        }
       }
 
       console.log(sheetNames);
@@ -176,32 +194,50 @@ const onReorderButtonClick = async (sheetNames) => {
       const workbook = context.workbook;
       const worksheets = workbook.worksheets;
 
-      // Get the current order of worksheets in the workbook
-      const currentSheetNames = sheetNames.slice(); // Create a copy of sheetNames array
-      const currentWorksheets = worksheets.load("name");
+      // Load both name and visibility properties for all worksheets
+      worksheets.load(["name", "visibility"]);
       await context.sync();
 
-      // Map the current order of sheet names to their corresponding worksheet objects
+      // Filter out hidden sheets and get their names
+      const visibleSheetNames = sheetNames.filter(sheetName => {
+        const worksheet = worksheets.items.find(sheet => sheet.name === sheetName);
+        return worksheet.visibility !== "Hidden";
+      });
+
+      // Map the visible sheet names to their corresponding worksheet objects
       const worksheetMap = {};
-      for (let i = 0; i < currentWorksheets.items.length; i++) {
-        const worksheet = currentWorksheets.items[i];
+      for (let i = 0; i < worksheets.items.length; i++) {
+        const worksheet = worksheets.items[i];
         worksheetMap[worksheet.name] = worksheet;
       }
 
       // Reorder worksheets based on the current UI order
-      for (let i = 0; i < currentSheetNames.length; i++) {
-        const sheetName = currentSheetNames[i];
+      for (let i = 0; i < visibleSheetNames.length; i++) {
+        const sheetName = visibleSheetNames[i];
         const worksheet = worksheetMap[sheetName];
         worksheet.position = i; // Set the position of the worksheet
       }
 
       // Save the changes
       await context.sync();
+
+      // After reordering, reload the sheet names and update the UI
+      const updatedSheetNames = [];
+      for (let i = 0; i < worksheets.items.length; i++) {
+        const currentSheet = worksheets.items[i];
+        if (currentSheet.visibility !== "Hidden") {
+          updatedSheetNames.push(currentSheet.name);
+        }
+      }
+
+      renderSheetCard(updatedSheetNames);
     });
   } catch (error) {
     console.error("Error reordering sheets:", error);
   }
 };
+
+
 
 const updateSheetOrder = (updatedOrder) => {
   tryCatch(() => {
