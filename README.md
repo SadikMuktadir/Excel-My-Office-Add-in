@@ -300,8 +300,8 @@ async function tryCatch(callback) {
 
 ## Authors
 
-- [@SadikMuktadir](https://www.github.com/SadikMuktadir)
 - [@Ismail Hosen](https://www.github.com/1504168)
+- [@SadikMuktadir](https://www.github.com/SadikMuktadir)
 
 
 ## Documentation
